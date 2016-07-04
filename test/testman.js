@@ -54,7 +54,6 @@ describe('Find Shakespeare and AnnaHatheway', function () {
                 db.find(predicate, function (error, foundNode) {
                     should(error).be.null();
                     should(foundNode).not.be.null();
-                    // console.log(foundNode);
                     foundNode.should.be.instanceOf(Array);
                     foundNode.length.should.be.exactly(1);
                     foundNode[0].id.should.be.exactly(Shakespeare.id);
@@ -133,6 +132,54 @@ describe('Find the nodes using labels',function() {
          done();
       });
    });
+});
+
+describe('Find the nodes and relate them', function() {
+    it('Should find Shakespeare and AnnaHatheway and relate them as married', function(done) {
+        async.parallel([
+            function(callback) {
+                var predicate = {name:'Shakespeare'};
+                db.find(predicate, function(error,foundNode) {
+                    should(error).be.null();
+                    should(foundNode).not.be.null();
+                    foundNode.should.be.instanceOf(Array);
+                    foundNode.length.should.be.exactly(1);
+                    foundNode[0].id.should.be.exactly(Shakespeare.id);
+                    foundNode[0].name.should.be.exactly(Shakespeare.name);
+                    foundNode[0].age.should.be.exactly(Shakespeare.age);
+                    callback(error,foundNode);
+                });
+            },
+            function(callback) {
+                var predicate = {name:'AnnaHatheway'};
+                db.find(predicate, function(error,foundNode) {
+                    should(error).be.null();
+                    should(foundNode).not.be.null();
+                    foundNode.should.be.instanceOf(Array);
+                    foundNode.length.should.be.exactly(1);
+                    foundNode[0].id.should.be.exactly(AnnaHatheway.id);
+                    foundNode[0].name.should.be.exactly(AnnaHatheway.name);
+                    foundNode[0].age.should.be.exactly(AnnaHatheway.age);
+                    callback(error,foundNode);
+                });
+            }
+        ], function(error,foundNodes) {
+            should(error).be.null();
+            should(foundNodes).not.be.null();
+            foundNodes.should.be.instanceOf(Array);                        
+            foundNodes.length.should.be.exactly(2);
+            db.relate(foundNodes[0],'marriedTo',foundNodes[1], function(error,relationship) {
+               should(error).be.null();
+               should(relationship).not.be.null();
+               relationship.should.be.instanceOf(Array);
+               relationship[0].start.should.be.exactly(foundNodes[0].id);
+               relationship[0].end.should.be.exactly(foundNodes[1].id);
+               relationship[0].id.should.not.be.null();
+               relationship[0].type.should.be.exactly('marriedTo');
+               done(); 
+            });
+        });    
+    });
 });
 
 
